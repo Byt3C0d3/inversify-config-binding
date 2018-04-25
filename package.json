@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "Package to create bindings automatically for an entire object tree (such as a config object)",
   "main": "lib/index.js",
-  "typings": "./dts/index.d.ts",
+  "types": "dts/index.d.ts",
   "scripts": {
     "pretest": "npm run build",
     "test": "nyc --reporter=text mocha --reporter spec lib/**/*.spec.js",
     "build": "run-p build:*",
     "build:lib": "tsc --outDir lib/ --sourceMap",
     "build:dts": "tsc --outdir dts/ --declaration ",
-    "clean": "shx rm -rf lib/ es/ dts/ amd/"
+    "clean": "shx rm -rf lib/ es/ dts/ amd/",
+    "publish": "run-s clean test"
   },
   "repository": {
     "type": "git",
