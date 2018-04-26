@@ -5,6 +5,9 @@ import { ObjectBinderSettings } from '../interfaces/interfaces';
 
 const defaultSettings: ObjectBinderSettings = {
   debug: false,
+  excludePatterns: [
+    /^_/ // Exclude members that start with _
+  ],
   prefix: 'CFG'
 };
 
@@ -16,7 +19,8 @@ const defaultSettings: ObjectBinderSettings = {
  */
 export function buildInjectionModule(configObject: any, settings?: ObjectBinderSettings | undefined) {
   return new ContainerModule((bind: interfaces.Bind) => {
-    bindAll(bind, configObject, settings || defaultSettings);
+    const mergedSettings = Object.assign(defaultSettings, settings);
+    bindAll(bind, configObject, mergedSettings);
   });
 }
 
@@ -29,7 +33,7 @@ export function buildInjectionModule(configObject: any, settings?: ObjectBinderS
 function bindAll(bind: interfaces.Bind, configObject: any, settings: ObjectBinderSettings) {
   const logger = getLogger(settings);
   const prefix = (settings.prefix && settings.prefix.trim()) || 'CFG';
-
+  const excludedPatterns = settings.excludePatterns as RegExp[];
   // Do an iterative DFS on all of object's properties
   // Stack stores the property path segments to be traversed
   // eg: config.person.name => ['config', 'person', 'name']
@@ -60,13 +64,23 @@ function bindAll(bind: interfaces.Bind, configObject: any, settings: ObjectBinde
     // If the current property is not a primitive and can have children, recurse on them by adding to stack
     if (!isLeaf(data)) {
       // we get all of the valid child properties down the whole prototype chain
-      for (const member of getChildProperties(data)) {
+      const properties = getChildProperties(data)
+        .filter((prop) => !isPropertyBlacklisted(excludedPatterns, prop)) ;
+      for (const member of properties) {
           stack.push(item.concat(member));
       }
     }
   }
 }
 
+/**
+ * Returns true if property matches no blacklist patterns
+ * @param excludedPatterns array of `RegExp` objects to test against
+ * @param propertyName name of property
+ */
+function isPropertyBlacklisted(excludedPatterns: RegExp[], propertyName: string) {
+  return !excludedPatterns.every((pattern) => !pattern.test(propertyName));
+}
 /**
  * Get all valid child properties down the prototype chain in a flat list
  * @param obj object whose child properties we seek
@@ -86,7 +100,7 @@ function getPrototypeChain(obj: any) {
   let prototype = Object.getPrototypeOf(obj);
 
   // When we reach Object, we are done
-  while (prototype !== Object.prototype) {
+  while (prototype && prototype !== Object.prototype) {
     prototypes.push(prototype);
     prototype = Object.getPrototypeOf(prototype);
   }
@@ -99,7 +113,7 @@ function getPrototypeChain(obj: any) {
  * @param prototype The particular prototype we are testing
  */
 function getPrototypeMembers(obj: any, prototype: any) {
-  return (prototype && Object.getOwnPropertyNames(prototype)) || []
+  return (Object.getOwnPropertyNames(prototype))
     .filter((p) =>
       isPublicProperty(p) &&
       isValidPropertyType(obj[p]));

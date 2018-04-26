@@ -1,4 +1,5 @@
 export interface ObjectBinderSettings {
-    prefix: string;
+    prefix?: string;
     debug?: boolean;
+    excludePatterns?: RegExp[];
   }

@@ -108,6 +108,10 @@ describe('ConfigModuleBuilder', () => {
 
   describe('ES6 class', () => {
     class Config {
+      public _lo = 'goodbye';
+      private _hi = 'greeting';
+      /* istanbul ignore next */
+      public greet() { return this._hi; }
       get settings() {
         return {
           a: 1,
