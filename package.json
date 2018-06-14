@@ -1,6 +1,6 @@
 {
   "name": "inversify-config-binding",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Package to create bindings automatically for an entire object tree (such as a config object)",
   "main": "lib/index.js",
   "types": "dts/index.d.ts",

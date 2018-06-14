@@ -156,7 +156,10 @@ function isPublicProperty(propertyName: string) {
  * @param obj a property value
  */
 function isLeaf(obj: any) {
-  return obj instanceof Array || ['string', 'number', 'boolean'].includes(typeof obj);
+  return obj === null ||
+    typeof obj === 'undefined' ||
+    obj instanceof Array ||
+    ['string', 'number', 'boolean'].includes(typeof obj);
 }
 
 /**

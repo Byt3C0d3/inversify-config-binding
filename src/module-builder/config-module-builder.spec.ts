@@ -1,3 +1,5 @@
+// tslint:disable:no-unused-expression
+
 import CaptureStdOut from 'capture-stdout';
 import { expect, use as chaiUse } from 'chai';
 import { Container, injectable } from 'inversify';
@@ -172,6 +174,12 @@ describe('ConfigModuleBuilder from instance', () => {
       }
     };
 
+    const testConfigWithNulls = {
+      settings: {
+        thing: null
+      }
+    };
+
     it('should be able to resolve config values', () => {
       // Arrange
       const container = new Container();
@@ -182,6 +190,18 @@ describe('ConfigModuleBuilder from instance', () => {
       // Assert
       expect(container.get<any>('CFG.otherSettings.c')).to.equal(1.2);
       expect(container.get<any>('CFG.settings')).to.deep.equal({ a: 1, b: 'name' });
+    });
+
+    it('should handle nulls gracefully', () => {
+      // Arrange
+      const container = new Container();
+      // Act
+      const module = buildInjectionModule(testConfigWithNulls, { debug: false, prefix: 'CFG' });
+      container.load(module);
+
+      // Assert
+      expect(container.get<any>('CFG.settings')).to.not.be.null;
+      expect(container.get<any>('CFG.settings.thing')).to.be.null;
     });
 
     it('should bind all valid types', () => {
