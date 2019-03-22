@@ -111,7 +111,10 @@ container.load(buildInjectionModule(configInstance, { debug: true, prefix: 'CFG'
 const needsConfig = container.get<NeedsConfig>(NeedsConfig)
 ```
 
+# Configuration
 In the above example we pass `{ debug: true, prefix: 'CFG' }`. These are the only two options supported at this time. 
+
+The currently supported configuration parameters are defined here:
 
 ## Debug
 If true, logs to stdout some useful info.
@@ -120,3 +123,7 @@ If true, logs to stdout some useful info.
 
 ## Prefix
 Sets this as the prefix for each binding. Useful to avoid property collision
+
+## excludePatterns
+Set this to a list of regular expressions. Any property matching one of these will be excluded. 
+*Default*: `/^_/`, for matching fields which start with _. 
