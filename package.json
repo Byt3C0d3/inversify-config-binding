@@ -1,6 +1,6 @@
 {
   "name": "inversify-config-binding",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Package to create bindings automatically for an entire object tree (such as a config object)",
   "main": "lib/index.js",
   "types": "dts/index.d.ts",
@@ -44,7 +44,7 @@
     "capture-stdout": "^1.0.0",
     "chai": "^4.1.2",
     "mocha": "^5.1.1",
-    "nyc": "^11.7.1",
+    "nyc": "^13.3.0",
     "shx": "^0.2.2",
     "sinon": "^4.5.0",
     "sinon-chai": "^3.0.0",
