@@ -57,3 +57,11 @@ typings/
 # dotenv environment variables file
 .env
 
+
+.vscode/
+
+# build files
+dts/
+es/
+lib/
+dist/
