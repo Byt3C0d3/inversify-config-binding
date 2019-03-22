@@ -6,7 +6,7 @@
   "types": "dts/index.d.ts",
   "scripts": {
     "pretest": "npm run build",
-    "test": "nyc --reporter=text mocha --reporter spec lib/**/*.spec.js",
+    "test": "nyc --reporter=text mocha --reporter spec node_modules/reflect-metadata/Reflect.js lib/**/*.spec.js",
     "build": "run-p build:*",
     "build:lib": "tsc --outDir lib/ --sourceMap",
     "build:dts": "tsc --outdir dts/ --declaration ",
@@ -50,5 +50,9 @@
     "sinon-chai": "^3.0.0",
     "tslint": "^5.9.1",
     "typescript": "^2.8.3"
+  },
+  "optionalDependencies": {
+    "inversify-binding-decorators": "^4.0.0",
+    "reflect-metadata": "^0.1.12"
   }
 }

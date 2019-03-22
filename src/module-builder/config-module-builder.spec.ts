@@ -1,15 +1,154 @@
 import CaptureStdOut from 'capture-stdout';
 import { expect, use as chaiUse } from 'chai';
-import { Container } from 'inversify';
+import { Container, injectable } from 'inversify';
 import * as sinon from 'sinon';
 
-import { buildInjectionModule } from './config-module-builder';
+import { config } from '../decorators/config';
+import { buildAutoInjectionModule, buildInjectionModule } from './config-module-builder';
 
-// import 'sinon-chai';
 import sinonChai = require('sinon-chai');
+import { METADATA_KEY } from '../constants/constants';
 chaiUse(sinonChai);
 
-describe('ConfigModuleBuilder', () => {
+describe('ConfigModuleBuilder from IoC', () => {
+  let sandbox: sinon.SinonSandbox;
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+    Reflect.deleteMetadata(METADATA_KEY.configObject, Reflect);
+  });
+
+  describe('ES6 class', () => {
+    it('should be able to resolve config from class with properties', () => {
+      // Arrange
+      @config()
+      class Config {
+        get settings() {
+          return {
+            a: 1,
+            b: 'name'
+          };
+        }
+        get otherSettings() {
+          /* istanbul ignore next */
+          return {
+            c: 1.2,
+            d: {
+              manyThings: [1, 2, 3]
+            }
+          };
+        }
+      }
+
+      const container = new Container();
+      // Act
+      container.load(buildAutoInjectionModule(container.get.bind(container)));
+
+      // Assert
+      expect(container.get<Config>(Config)).to.be.instanceof(Config);
+      expect(container.get<any>('CFG.settings')).deep.equal({ a: 1, b: 'name' });
+
+    });
+
+    it('should be handle decorators on a class already marked @injectable', () => {
+      // Arrange
+      @config()
+      @injectable()
+      class Config {
+        get settings() {
+          return {
+            a: 1,
+            b: 'name'
+          };
+        }
+        get otherSettings() {
+          /* istanbul ignore next */
+          return {
+            c: 1.2,
+            d: {
+              manyThings: [1, 2, 3]
+            }
+          };
+        }
+      }
+
+      const container = new Container();
+      // Act
+      container.load(buildAutoInjectionModule(container.get.bind(container)));
+
+      // Assert
+      expect(container.get<Config>(Config)).to.be.instanceof(Config);
+      expect(container.get<any>('CFG.settings')).deep.equal({ a: 1, b: 'name' });
+
+    });
+
+    it('should be able to resolve config from class with properties when custom settings provided', () => {
+      // Arrange
+      @config({excludePatterns: [/^x/], prefix: 'CFG2', serviceIdentifier: 'Config2' })
+      class Config2 {
+        get foo() { return 'bar'; }
+        get xFoo() { return 'baz'; }
+      }
+
+      const container = new Container();
+      const bindSpy = sandbox.spy(container, 'bind');
+      // Act
+      container.load(buildAutoInjectionModule(container.get.bind(container)));
+
+      // Assert
+      expect(container.get<Config2>('Config2')).to.be.instanceof(Config2);
+      expect(container.get<any>('CFG2.foo')).equal('bar');
+      expect(bindSpy).to.not.have.been.calledWith('CFG2.xFoo');
+    });
+
+    it('should be able to resolve multiple configs', () => {
+      // Arrange
+      @config()
+      class Config {
+        get settings() {
+          return {
+            a: 1,
+            b: 'name'
+          };
+        }
+        get otherSettings() {
+          /* istanbul ignore next */
+          return {
+            c: 1.2,
+            d: {
+              manyThings: [1, 2, 3]
+            }
+          };
+        }
+      }
+
+      @config({excludePatterns: [/^x/], prefix: 'CFG2', serviceIdentifier: 'Config2' })
+      class Config2 {
+        get foo() { return 'bar'; }
+        get xFoo() { return 'baz'; }
+      }
+
+      const container = new Container();
+      const bindSpy = sandbox.spy(container, 'bind');
+      // Act
+      container.load(buildAutoInjectionModule(container.get.bind(container)));
+
+      // Assert
+      expect(container.get<Config>(Config)).to.be.instanceof(Config);
+      expect(container.get<any>('CFG.settings')).deep.equal({ a: 1, b: 'name' });
+
+      expect(container.get<Config2>('Config2')).to.be.instanceof(Config2);
+      expect(container.get<any>('CFG2.foo')).equal('bar');
+
+      expect(bindSpy).to.not.have.been.calledWith('CFG2.xFoo');
+    });
+  });
+});
+
+describe('ConfigModuleBuilder from instance', () => {
   let sandbox: sinon.SinonSandbox;
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -160,10 +299,9 @@ describe('ConfigModuleBuilder', () => {
     it('should be able to resolve config from class with properties', () => {
       // Arrange
       const container = new Container();
-      const config = new Config();
 
       // Act
-      const module = buildInjectionModule(config, { debug: false, prefix: 'CFG' });
+      const module = buildInjectionModule(configInstance, { debug: false, prefix: 'CFG' });
       container.load(module);
 
       // Assert
@@ -240,10 +378,9 @@ describe('ConfigModuleBuilder', () => {
     it('should be able to resolve config from class with properties', () => {
       // Arrange
       const container = new Container();
-      const config = new Config();
 
       // Act
-      const module = buildInjectionModule(config, { debug: false, prefix: 'CFG' });
+      const module = buildInjectionModule(configInstance, { debug: false, prefix: 'CFG' });
       container.load(module);
 
       // Assert

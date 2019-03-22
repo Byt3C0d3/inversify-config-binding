@@ -111,6 +111,33 @@ container.load(buildInjectionModule(configInstance, { debug: true, prefix: 'CFG'
 const needsConfig = container.get<NeedsConfig>(NeedsConfig)
 ```
 
+## IoC creator support
+If you have a complicated settings system, you may not want to instantiate your config object by hand. 
+For this case, a second module is provided.
+
+The following may be done:
+```typescript
+@config({excludePatterns: [/^x/], prefix: 'CFG2', serviceIdentifier: 'Config2' })
+class Config2 {
+  get foo() { return 'bar'; }
+  get xFoo() { return 'baz'; }
+}
+```
+Note, the options to the decorator are optional, and the default behavior will bind the class to an identifier of itself.
+*eg:* `bind(Config2).to(Config2)`
+
+You may then load all types decorated in this manner by loading the second type of module:
+
+```typescript
+container.load(buildAutoInjectionModule(container.get.bind(container)));
+``` 
+
+This module will collect and bind all classes decorated with `@config`, and it will use the `resolver` parameter passed to `buildAutoInjectionModule()` to get an instance. This can be any function which consumes an InversifyJS service identifier and produces the target type, but in practice you would pass the container's `get()` as above.
+
+### Notes and caveats
+* It is somewhat of an anti-pattern to pass the resolver into a module. To ensure this works well for you, make sure to load this module last. 
+* Notice the `.bind(container)`. InversifyJS uses `this` inside the `get` call, so it is important to bind it. Alternately the following is valid: `(serviceIdentifier: interfaces.ServiceIdentifier) => container.get(serviceIdentifier)`. The arrow function will take care of that parameter.
+
 # Configuration
 In the above example we pass `{ debug: true, prefix: 'CFG' }`. These are the only two options supported at this time. 
 

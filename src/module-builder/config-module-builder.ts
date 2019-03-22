@@ -1,7 +1,8 @@
 import { ContainerModule, interfaces } from 'inversify';
 import flatMap from 'lodash.flatmap';
 
-import { ObjectBinderSettings } from '../interfaces/interfaces';
+import { METADATA_KEY } from '../constants/constants';
+import { ConfigObjectMetadata, ObjectBinderSettings, ResolverFunction } from '../interfaces/interfaces';
 
 const defaultSettings: ObjectBinderSettings = {
   debug: false,
@@ -10,6 +11,19 @@ const defaultSettings: ObjectBinderSettings = {
   ],
   prefix: 'CFG'
 };
+
+export function buildAutoInjectionModule(resolver: ResolverFunction<any>) {
+  return new ContainerModule((bind: interfaces.Bind) => {
+    const metadata: ConfigObjectMetadata[] = Reflect.getMetadata(METADATA_KEY.configObject, Reflect);
+    metadata.forEach((item) => {
+      const identifier = (item.settings && item.settings.serviceIdentifier) || item.implementationType;
+      bind(identifier).to(item.implementationType).inSingletonScope();
+
+      const instance = resolver(identifier);
+      bindAll(bind, instance, item.settings || defaultSettings);
+    });
+  });
+}
 
 /**
  * Builds an InversifyJS container module that can be loaded to register the provided
