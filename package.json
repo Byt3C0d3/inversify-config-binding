@@ -1,6 +1,6 @@
 {
   "name": "inversify-config-binding",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Package to create bindings automatically for an entire object tree (such as a config object)",
   "main": "lib/index.js",
   "types": "dts/index.d.ts",
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/Byt3C0d3/inversify-config-binding#readme",
   "dependencies": {
     "@types/lodash.flatmap": "^4.5.3",
-    "inversify": "^4.13.0",
+    "inversify": "^5.0.1",
     "lodash.flatmap": "^4.5.0",
     "npm-run-all": "^4.1.2"
   },
